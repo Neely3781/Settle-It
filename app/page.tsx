@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Brain, Eye, Scale, Sparkles, MessageSquare, ShieldCheck, Upload, ImageIcon, X, Loader2, Lock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { PaymentForm } from "@/components/payment-form";
+import { compressImages } from "@/lib/compress-image";
 import Link from "next/link";
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -85,23 +86,30 @@ export default function Home() {
       return;
     }
     setError(null);
-    setLoadingText("Analyzing your conversation...");
-    setProgress(15);
+    setLoadingText("Compressing images...");
+    setProgress(10);
     setLoading(true);
 
-    // Animate progress while waiting
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 85) return p;
-        return p + Math.random() * 8;
-      });
-    }, 1200);
-
     try {
+      // Compress images to avoid 413 Payload Too Large
+      setLoadingText("Compressing images...");
+      const compressedImages = await compressImages(images, 1200, 0.7);
+      
+      setLoadingText("Analyzing your conversation...");
+      setProgress(30);
+
+      // Animate progress while waiting
+      const interval = setInterval(() => {
+        setProgress((p) => {
+          if (p >= 85) return p;
+          return p + Math.random() * 8;
+        });
+      }, 1200);
+
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images, context }),
+        body: JSON.stringify({ images: compressedImages, context }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -115,7 +123,6 @@ export default function Home() {
       setProgress(100);
       handleAnalysisComplete(data);
     } catch (e: any) {
-      clearInterval(interval);
       setError(e.message);
       setLoading(false);
       setProgress(0);

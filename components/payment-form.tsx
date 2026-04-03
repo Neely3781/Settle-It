@@ -8,6 +8,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
+import { compressImages } from "@/lib/compress-image";
 import { Loader2 } from "lucide-react";
 
 interface PaymentFormProps {
@@ -85,12 +86,13 @@ export function PaymentForm({
       ev.complete("success");
       setIsSuccess(true);
 
-      // Payment succeeded — run analysis
+      // Payment succeeded — compress and analyze
       try {
+        const compressedImages = await compressImages(images, 1200, 0.7);
         const analyzeRes = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ images, context }),
+          body: JSON.stringify({ images: compressedImages, context }),
         });
 
         const analyzeData = await analyzeRes.json();
@@ -151,11 +153,12 @@ export function PaymentForm({
 
       setIsSuccess(true);
 
-      // Payment succeeded — run analysis
+      // Payment succeeded — compress and analyze
+      const compressedImages = await compressImages(images, 1200, 0.7);
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images, context }),
+        body: JSON.stringify({ images: compressedImages, context }),
       });
 
       const analyzeData = await analyzeRes.json();
