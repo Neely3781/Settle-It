@@ -30,7 +30,7 @@ export default function Home() {
 
   const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const remainingSlots = 20 - images.length;
+    const remainingSlots = 8 - images.length;
     if (remainingSlots <= 0) return;
     const toProcess = Array.from(files).slice(0, remainingSlots);
     const newImages: string[] = [];
@@ -194,8 +194,8 @@ export default function Home() {
                   <p className="text-lg font-semibold">Drag & drop screenshots here</p>
                   <p className="text-sm text-muted-foreground">
                     {images.length > 0
-                      ? `${images.length} uploaded — add up to 20 total`
-                      : "or click to upload up to 20 images"}
+                      ? `${images.length} uploaded — add up to 8 total`
+                      : "or click to upload up to 8 images"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
