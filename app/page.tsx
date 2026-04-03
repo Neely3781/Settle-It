@@ -1,65 +1,485 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { Button } from "@/components/ui/button";
+import { Brain, Eye, Scale, Sparkles, MessageSquare, ShieldCheck, Upload, ImageIcon, X, Loader2, Lock } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { PaymentForm } from "@/components/payment-form";
+import Link from "next/link";
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
+);
 
 export default function Home() {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [context, setContext] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Analyzing...");
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFiles = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const remainingSlots = 20 - images.length;
+    if (remainingSlots <= 0) return;
+    const toProcess = Array.from(files).slice(0, remainingSlots);
+    const newImages: string[] = [];
+    for (const file of toProcess) {
+      newImages.push(await fileToBase64(file));
+    }
+    setImages((prev) => [...prev, ...newImages]);
+  }, [images.length]);
+
+  const removeImage = (idx: number) => {
+    setImages((prev) => {
+      const next = [...prev];
+      next.splice(idx, 1);
+      return next;
+    });
+  };
+
+  const handleAnalysisComplete = (result: any) => {
+    sessionStorage.setItem("settle_it_result", JSON.stringify(result));
+    router.push("/result");
+  };
+
+  const handleStartPayment = async () => {
+    if (images.length === 0) {
+      setError("Please upload at least one screenshot.");
+      return;
+    }
+    setError(null);
+    setLoadingText("Setting up payment...");
+    setProgress(10);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 99 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Payment setup failed.");
+      setProgress(100);
+      setClientSecret(data.clientSecret);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+      setProgress(0);
+    }
+  };
+
+  const handleSkipPayment = async () => {
+    if (images.length === 0) {
+      setError("Please upload at least one screenshot.");
+      return;
+    }
+    setError(null);
+    setLoadingText("Analyzing your conversation...");
+    setProgress(15);
+    setLoading(true);
+
+    // Animate progress while waiting
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 85) return p;
+        return p + Math.random() * 8;
+      });
+    }, 1200);
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images, context }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        let msg = data.error || "Analysis failed.";
+        if (data.raw) {
+          msg += `\n\nRaw response: ${String(data.raw).slice(0, 300)}`;
+        }
+        throw new Error(msg);
+      }
+      clearInterval(interval);
+      setProgress(100);
+      handleAnalysisComplete(data);
+    } catch (e: any) {
+      clearInterval(interval);
+      setError(e.message);
+      setLoading(false);
+      setProgress(0);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="flex-1">
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border/40">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
+        <div className="container relative mx-auto max-w-5xl px-4 py-24 md:py-32">
+          <div className="flex flex-col items-center text-center">
+            <h1 className="mb-6 max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-6xl lg:text-7xl">
+              Upload the receipts.
+              <br />
+              <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                Get the verdict.
+              </span>
+            </h1>
+            <p className="mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
+              Been in a messy argument? Upload screenshots + context. Our
+              psychologist-Source decodes the psychological dynamics, pinpoints the
+              exact turning point, and gives you a structured 3rd-party
+              perspective.
+            </p>
+
+            {/* Upload Area */}
+            <div className="w-full max-w-xl space-y-4">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(false);
+                  handleFiles(e.dataTransfer.files);
+                }}
+                className={`group relative flex w-full cursor-pointer flex-col items-center rounded-3xl border-2 border-dashed bg-card/50 p-10 transition md:p-14 ${
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-border/60 hover:border-primary/40 hover:bg-card"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    handleFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 transition group-hover:scale-105">
+                  <Upload className="h-8 w-8 text-primary" />
+                </div>
+                <div className="mt-4 space-y-1 text-center">
+                  <p className="text-lg font-semibold">Drag & drop screenshots here</p>
+                  <p className="text-sm text-muted-foreground">
+                    {images.length > 0
+                      ? `${images.length} uploaded — add up to 20 total`
+                      : "or click to upload up to 20 images"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  <span>PNG, JPG, WEBP supported</span>
+                </div>
+              </div>
+
+              {/* Image Previews */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                  {images.map((src, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative aspect-square overflow-hidden rounded-xl border border-border/40 bg-muted"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt={`Screenshot ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          removeImage(idx);
+                        }}
+                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition hover:bg-black/80 group-hover:opacity-100"
+                        aria-label="Remove image"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Context input */}
+            <div className="mt-6 w-full max-w-xl space-y-2 text-left">
+              <label htmlFor="home-context" className="text-sm font-medium">
+                Context
+              </label>
+              <Textarea
+                id="home-context"
+                placeholder="Who is this person to you? What was the fight about? Any backstory — like how long you've known each other, recent tension, or what triggered the exchange — helps the analysis go deeper."
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional, but the more context you give, the sharper the verdict.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mt-4 w-full max-w-xl rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            {!clientSecret ? (
+              <div className="mt-6 flex w-full max-w-xl flex-col gap-3">
+                {loading ? (
+                  <div className="w-full rounded-2xl border border-border/40 bg-card/50 p-5">
+                    <div className="mb-3 flex items-center justify-between text-sm">
+                      <span className="font-medium">{loadingText}</span>
+                      <span className="text-muted-foreground">
+                        {Math.min(Math.round(progress), 100)}%
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 transition-all duration-700 ease-out"
+                        style={{ width: `${Math.min(progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleStartPayment}
+                      disabled={images.length === 0}
+                      size="lg"
+                      className="w-full text-lg"
+                    >
+                      <Lock className="mr-2 h-4 w-4" />
+                      {images.length === 0
+                        ? "Upload at least 1 image"
+                        : "Get My Verdict — $0.99"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={handleSkipPayment}
+                      disabled={images.length === 0}
+                      className="text-center text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:opacity-50"
+                    >
+                      Skip payment (dev mode)
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="mt-6 w-full max-w-xl space-y-4">
+                <div className="rounded-lg border border-border/40 bg-muted/30 p-4 text-sm text-muted-foreground">
+                  Complete payment to unlock your AI psychologist report.
+                </div>
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret,
+                    appearance: {
+                      theme: "night",
+                      variables: {
+                        colorPrimary: "#e5e5e5",
+                        colorText: "#e5e5e5",
+                        colorBackground: "#1c1917",
+                        colorTextPlaceholder: "#737373",
+                      },
+                    },
+                  }}
+                >
+                  <PaymentForm
+                    clientSecret={clientSecret}
+                    images={images}
+                    context={context}
+                    onComplete={handleAnalysisComplete}
+                    onError={setError}
+                  />
+                </Elements>
+              </div>
+            )}
+
+            <p className="mt-4 text-sm text-muted-foreground">
+              Get your analysis for $0.99
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </section>
+
+      {/* Social proof / how it works */}
+      <section className="container mx-auto max-w-5xl px-4 py-20">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            How it works
+          </h2>
+        </div>
+        <div className="grid gap-8 md:grid-cols-3">
+          <StepCard
+            icon={<Eye className="h-6 w-6 text-indigo-400" />}
+            step="1"
+            title="Upload Screenshots"
+            description="Drop in screenshots of the conversation. Add a brief explanation of the backstory if you want."
+          />
+          <StepCard
+            icon={<Scale className="h-6 w-6 text-violet-400" />}
+            step="2"
+            title="Pay $0.99"
+            description="Unlock your personalized AI psychologist report. No recurring fees, no data sold."
+          />
+          <StepCard
+            icon={<Brain className="h-6 w-6 text-fuchsia-400" />}
+            step="3"
+            title="Get The Verdict"
+            description="Receive a structured analysis: The Turning Point, Psychological Dynamics, Translation Layer, and The Path Forward."
+          />
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="border-t border-border/40 bg-muted/20">
+        <div className="container mx-auto max-w-5xl px-4 py-20">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              What you get
+            </h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <FeatureCard
+              icon={<MessageSquare className="h-5 w-5" />}
+              title="The Verdict"
+              description="A neutral, 3rd-party summary of what actually happened in the conversation."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <FeatureCard
+              icon={<Sparkles className="h-5 w-5" />}
+              title="The Turning Point"
+              description="The exact moment or message where the tone shifted — and why."
+            />
+            <FeatureCard
+              icon={<Brain className="h-5 w-5" />}
+              title="Psychological Dynamics"
+              description="Attachment styles, defense mechanisms, and communication patterns at play."
+            />
+            <FeatureCard
+              icon={<Scale className="h-5 w-5" />}
+              title="Translation Layer"
+              description="What each person was really feeling underneath their words."
+            />
+            <FeatureCard
+              icon={<ShieldCheck className="h-5 w-5" />}
+              title="The Path Forward"
+              description="Actionable, non-judgmental recommendations for repair or closure."
+            />
+            <FeatureCard
+              icon={<Eye className="h-5 w-5" />}
+              title="Complexity Score"
+              description="A 1-10 rating of how entangled the argument is — and whether it’s fixable."
+            />
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* CTA */}
+      <section className="container mx-auto max-w-5xl px-4 py-20">
+        <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 p-10 text-center md:p-16">
+          <div className="relative">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+              Stop overthinking. Start understanding.
+            </h2>
+            <p className="mb-8 text-muted-foreground">
+              Get the clarity you need — from an AI that specializes in
+              conversational complexity and human psychology.
+            </p>
+            <Button
+              size="lg"
+              className="px-8 text-lg"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
+              Analyze My Conversation — $0.99
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border/40 py-10 text-center text-sm text-muted-foreground">
+        <p>© {new Date().getFullYear()} Settle It. All rights reserved.</p>
+      </footer>
+    </main>
+  );
+}
+
+function StepCard({
+  icon,
+  step,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  step: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-border/40 bg-card p-8 text-center transition hover:border-primary/30 hover:shadow-sm">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+        {icon}
+      </div>
+      <span className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Step {step}
+      </span>
+      <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card p-6 transition hover:border-primary/30 hover:shadow-sm">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
