@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { PaymentForm } from "@/components/payment-form";
 import Link from "next/link";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
-);
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey && stripeKey.startsWith("pk_") 
+  ? loadStripe(stripeKey) 
+  : null;
 
 export default function Home() {
   const router = useRouter();
