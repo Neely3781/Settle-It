@@ -287,14 +287,6 @@ export default function Home() {
                         ? "Upload at least 1 image"
                         : "Get My Verdict — $0.99"}
                     </Button>
-                    <button
-                      type="button"
-                      onClick={handleSkipPayment}
-                      disabled={images.length === 0}
-                      className="text-center text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:opacity-50"
-                    >
-                      Skip payment (dev mode)
-                    </button>
                   </>
                 )}
               </div>
