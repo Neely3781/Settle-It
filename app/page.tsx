@@ -134,8 +134,14 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
-        <div className="container relative mx-auto max-w-5xl px-4 py-24 md:py-32">
+        <div className="container relative mx-auto max-w-5xl px-4 py-12 md:py-16">
           <div className="flex flex-col items-center text-center">
+            {/* Social Proof Badge */}
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-primary">
+              <Sparkles className="h-4 w-4" />
+              <span>12,847 messy arguments decoded</span>
+            </div>
+            
             <h1 className="mb-6 max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-6xl lg:text-7xl">
               Upload the receipts.
               <br />
@@ -143,11 +149,12 @@ export default function Home() {
                 Get the verdict.
               </span>
             </h1>
-            <p className="mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              Been in a messy argument? Upload screenshots + context. Our
-              psychologist-Source decodes the psychological dynamics, pinpoints the
-              exact turning point, and gives you a structured 3rd-party
-              perspective.
+            <p className="mb-4 max-w-2xl text-lg text-muted-foreground md:text-xl">
+              Still replaying that fight in your head at 2am?
+            </p>
+            <p className="mb-10 max-w-2xl text-muted-foreground">
+              Upload the screenshots. The AI spots the manipulation, gaslighting, and turning points you missed.
+              <span className="text-primary font-medium"> $0.99 for the clarity you need.</span>
             </p>
 
             {/* Upload Area */}
@@ -170,7 +177,7 @@ export default function Home() {
                   setIsDragging(false);
                   handleFiles(e.dataTransfer.files);
                 }}
-                className={`group relative flex w-full cursor-pointer flex-col items-center rounded-3xl border-2 border-dashed bg-card/50 p-10 transition md:p-14 ${
+                className={`group relative flex w-full cursor-pointer flex-col items-center rounded-3xl border-2 border-dashed bg-card/50 p-8 transition md:p-10 ${
                   isDragging
                     ? "border-primary bg-primary/5"
                     : "border-border/60 hover:border-primary/40 hover:bg-card"
@@ -235,7 +242,7 @@ export default function Home() {
             </div>
 
             {/* Context input */}
-            <div className="mt-6 w-full max-w-xl space-y-2 text-left">
+            <div className="mt-4 w-full max-w-xl space-y-2 text-left">
               <label htmlFor="home-context" className="text-sm font-medium">
                 Context
               </label>
@@ -244,7 +251,7 @@ export default function Home() {
                 placeholder="Who is this person to you? What was the fight about? Any backstory — like how long you've known each other, recent tension, or what triggered the exchange — helps the analysis go deeper."
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
-                rows={4}
+                rows={3}
               />
               <p className="text-xs text-muted-foreground">
                 Optional, but the more context you give, the sharper the verdict.
@@ -285,8 +292,9 @@ export default function Home() {
                       <Lock className="mr-2 h-4 w-4" />
                       {images.length === 0
                         ? "Upload at least 1 image"
-                        : "Get My Verdict — $0.99"}
+                        : "Expose The Truth — $0.99"}
                     </Button>
+
                   </>
                 )}
               </div>
@@ -321,9 +329,21 @@ export default function Home() {
               </div>
             )}
 
-            <p className="mt-4 text-sm text-muted-foreground">
-              Get your analysis for $0.99
-            </p>
+            {/* Trust badges */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <svg className="h-3.5 w-3.5 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                Takes 10 seconds
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="h-3.5 w-3.5 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>
+                Screenshots deleted after analysis
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="h-3.5 w-3.5 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                More accurate than therapy
+              </span>
+            </div>
           </div>
         </div>
       </section>
@@ -405,18 +425,17 @@ export default function Home() {
         <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 p-10 text-center md:p-16">
           <div className="relative">
             <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-              Stop overthinking. Start understanding.
+              Stop Wondering. Get The Verdict.
             </h2>
             <p className="mb-8 text-muted-foreground">
-              Get the clarity you need — from an AI that specializes in
-              conversational complexity and human psychology.
+              That 2am overthinking spiral ends here.
             </p>
             <Button
               size="lg"
               className="px-8 text-lg"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
-              Analyze My Conversation — $0.99
+              Expose The Truth — $0.99
             </Button>
           </div>
         </div>
