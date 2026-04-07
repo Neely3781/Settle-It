@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     if (priceId) {
       // Use Stripe Product/Price for cleaner reporting
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 99,
+        amount: 99, 
         currency: "usd",
         payment_method_types: ["card", "cashapp"],
         description: "Psychologist process for conversation analysis",
