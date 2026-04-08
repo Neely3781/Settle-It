@@ -291,7 +291,7 @@ export default function Home() {
                       <Lock className="mr-2 h-4 w-4" />
                       {images.length === 0
                         ? "Upload at least 1 image"
-                        : "Expose The Truth - $0.99"}
+                        : "Get your verdict for $0.99"}
                     </Button>
 
                   </>
