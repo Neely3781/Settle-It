@@ -12,8 +12,8 @@ import { compressImages } from "@/lib/compress-image";
 import Link from "next/link";
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = stripeKey && stripeKey.startsWith("pk_") 
-  ? loadStripe(stripeKey) 
+const stripePromise = stripeKey && stripeKey.startsWith("pk_")
+  ? loadStripe(stripeKey)
   : null;
 
 export default function Home() {
@@ -94,7 +94,7 @@ export default function Home() {
       // Compress images to avoid 413 Payload Too Large
       setLoadingText("Compressing images...");
       const compressedImages = await compressImages(images, 1200, 0.7);
-      
+
       setLoadingText("Analyzing your conversation...");
       setProgress(30);
 
@@ -141,20 +141,19 @@ export default function Home() {
               <Sparkles className="h-4 w-4" />
               <span>12,847 messy arguments decoded</span>
             </div>
-            
+
             <h1 className="mb-6 max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-6xl lg:text-7xl">
-              Upload the receipts.
+              Upload your Screenshots.
               <br />
               <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-                Get the verdict.
+                Get Your verdict.
               </span>
             </h1>
             <p className="mb-4 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              Still replaying that fight in your head at 2am?
+              What would a psychologist find in your argument?
             </p>
             <p className="mb-10 max-w-2xl text-muted-foreground">
-              Upload the screenshots. The AI spots the manipulation, gaslighting, and turning points you missed.
-              <span className="text-primary font-medium"> $0.99 for the clarity you need.</span>
+              Upload the screenshots. Get insight on the possible manipulation, gaslighting, and or turning points you missed from a phycologist-perspective.
             </p>
 
             {/* Upload Area */}
@@ -201,7 +200,7 @@ export default function Home() {
                   <p className="text-lg font-semibold">Drag & drop screenshots here</p>
                   <p className="text-sm text-muted-foreground">
                     {images.length > 0
-                      ? `${images.length} uploaded — add up to 8 total`
+                      ? `${images.length} uploaded - add up to 8 total`
                       : "or click to upload up to 8 images"}
                   </p>
                 </div>
@@ -248,7 +247,7 @@ export default function Home() {
               </label>
               <Textarea
                 id="home-context"
-                placeholder="Who is this person to you? What was the fight about? Any backstory — like how long you've known each other, recent tension, or what triggered the exchange — helps the analysis go deeper."
+                placeholder="Who is this person to you? What was the fight about? Any backstory - like how long you've known each other, recent tension, or what triggered the exchange - helps the analysis go deeper."
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
                 rows={3}
@@ -292,7 +291,7 @@ export default function Home() {
                       <Lock className="mr-2 h-4 w-4" />
                       {images.length === 0
                         ? "Upload at least 1 image"
-                        : "Expose The Truth — $0.99"}
+                        : "Expose The Truth - $0.99"}
                     </Button>
 
                   </>
@@ -344,99 +343,22 @@ export default function Home() {
                 More accurate than therapy
               </span>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Social proof / how it works */}
-      <section className="container mx-auto max-w-5xl px-4 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            How it works
-          </h2>
-        </div>
-        <div className="grid gap-8 md:grid-cols-3">
-          <StepCard
-            icon={<Eye className="h-6 w-6 text-indigo-400" />}
-            step="1"
-            title="Upload Screenshots"
-            description="Drop in screenshots of the conversation. Add a brief explanation of the backstory if you want."
-          />
-          <StepCard
-            icon={<Scale className="h-6 w-6 text-violet-400" />}
-            step="2"
-            title="Pay $0.99"
-            description="Unlock your personalized AI psychologist report. No recurring fees, no data sold."
-          />
-          <StepCard
-            icon={<Brain className="h-6 w-6 text-fuchsia-400" />}
-            step="3"
-            title="Get The Verdict"
-            description="Receive a structured analysis: The Turning Point, Psychological Dynamics, Translation Layer, and The Path Forward."
-          />
-        </div>
-      </section>
+            {/* Live Activity Badge */}
+            <div className="mt-6 flex items-center justify-center gap-2 text-sm text-primary">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-fuchsia-400"></span>
+              </span>
+              <span className="font-medium">47 people analyzing their texts right now</span>
+            </div>
 
-      {/* Features */}
-      <section className="border-t border-border/40 bg-muted/20">
-        <div className="container mx-auto max-w-5xl px-4 py-20">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              What you get
-            </h2>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon={<MessageSquare className="h-5 w-5" />}
-              title="The Verdict"
-              description="A neutral, 3rd-party summary of what actually happened in the conversation."
-            />
-            <FeatureCard
-              icon={<Sparkles className="h-5 w-5" />}
-              title="The Turning Point"
-              description="The exact moment or message where the tone shifted — and why."
-            />
-            <FeatureCard
-              icon={<Brain className="h-5 w-5" />}
-              title="Psychological Dynamics"
-              description="Attachment styles, defense mechanisms, and communication patterns at play."
-            />
-            <FeatureCard
-              icon={<Scale className="h-5 w-5" />}
-              title="Translation Layer"
-              description="What each person was really feeling underneath their words."
-            />
-            <FeatureCard
-              icon={<ShieldCheck className="h-5 w-5" />}
-              title="The Path Forward"
-              description="Actionable, non-judgmental recommendations for repair or closure."
-            />
-            <FeatureCard
-              icon={<Eye className="h-5 w-5" />}
-              title="Complexity Score"
-              description="A 1-10 rating of how entangled the argument is — and whether it’s fixable."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="container mx-auto max-w-5xl px-4 py-20">
-        <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 p-10 text-center md:p-16">
-          <div className="relative">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-              Stop Wondering. Get The Verdict.
-            </h2>
-            <p className="mb-8 text-muted-foreground">
-              That 2am overthinking spiral ends here.
-            </p>
-            <Button
-              size="lg"
-              className="px-8 text-lg"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            >
-              Expose The Truth — $0.99
-            </Button>
+            {/* Trust Bar */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">$0.99 · No subscription</span>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Screenshots auto-deleted</span>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">12,847 analyzed this month</span>
+            </div>
           </div>
         </div>
       </section>
