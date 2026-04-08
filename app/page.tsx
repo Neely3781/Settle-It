@@ -359,6 +359,25 @@ export default function Home() {
               <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Screenshots auto-deleted</span>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">12,847 analyzed this month</span>
             </div>
+
+            {/* Example Verdict Video - Phone Card */}
+            <div className="mt-10 flex justify-center">
+              <div className="relative w-[280px] rounded-[2.5rem] border-4 border-border/40 bg-black p-2 shadow-2xl">
+                {/* Phone notch */}
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-black rounded-b-2xl z-10"></div>
+                <div className="rounded-[2rem] overflow-hidden bg-black">
+                  <video
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-auto rounded-[2rem]"
+                  >
+                    <source src="/Argument-insider-home-page-video.mov" type="video/mp4" />
+                  </video>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
